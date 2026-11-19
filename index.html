@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14052b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Gym Quest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Gym Quest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Neon Y2K, simplified: deep purple night, pink for action, cyan for headings, lime for done */
+  --bg:#14052b;
+  --panel:#1f0a3a;
+  --line:#3a1a63;
+  --pink:#ff3fd2;
+  --cyan:#3ff3ff;
+  --lime:#c4ff4a;
+  --ink:#fdf0ff;
+  --muted:#b79ad6;
+  --display:"Audiowide","Trebuchet MS",sans-serif;
+  --body:"Fredoka","Nunito","Segoe UI",system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.45;
+  padding:env(safe-area-inset-top) 0 calc(80px + env(safe-area-inset-bottom));
+  background-image:radial-gradient(circle at 100% 0%,rgba(255,63,210,.22),transparent 45%),radial-gradient(circle at 0% 100%,rgba(63,243,255,.12),transparent 45%);
+  background-attachment:fixed}
+.wrap{max-width:560px;margin:0 auto;padding:16px 16px 24px;display:grid;gap:16px}
+h1,h2{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
+h1{font-size:30px;color:var(--pink);text-shadow:0 0 14px rgba(255,63,210,.6)}
+h2{font-size:19px;color:var(--cyan)}
+h3{margin:0;font-size:16px;font-weight:600}
+p{margin:0}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.lvl{font-size:14px;font-weight:600;color:var(--lime);text-align:right}
+/* tabs */
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;position:sticky;top:0;z-index:5;padding:6px 0;background:var(--bg)}
+.tab{font:inherit;font-weight:600;font-size:15px;padding:9px 4px;border-radius:999px;border:2px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer}
+.tab[aria-selected="true"]{border-color:var(--pink);background:var(--pink);color:var(--bg)}
+.view{display:grid;gap:16px}
+.view[hidden]{display:none}
+/* cards */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:18px;display:grid;gap:12px}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+/* xp */
+.xpnum{font-family:var(--display);font-size:36px;line-height:1;color:var(--lime);font-variant-numeric:tabular-nums}
+.bar{height:12px;border-radius:999px;background:#0d0220;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--pink),var(--lime));transition:width .3s}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;cursor:pointer}
+.btn{font-weight:600;font-size:15px;border-radius:999px;padding:7px 13px;border:2px solid var(--cyan);background:transparent;color:var(--cyan)}
+.btn:hover{background:var(--cyan);color:var(--bg)}
+.link{border:none;background:none;color:var(--muted);text-decoration:underline;padding:0;font-size:14px}
+/* workout */
+.kicker{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--pink)}
+.wtitle{font-family:var(--display);font-size:24px;line-height:1.15}
+.phase{display:grid;grid-template-columns:76px 1fr;gap:10px;padding-top:10px;border-top:1px dashed var(--line)}
+.phase .t{font-size:14px;font-weight:600;color:var(--cyan)}
+.list{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.list li{display:grid;gap:1px}
+.list .opt{font-size:14px;color:var(--muted)}
+.list .sr{font-size:14px;color:var(--lime);font-weight:600;font-variant-numeric:tabular-nums}
+.done-btn{font-family:var(--display);font-size:18px;padding:16px;border-radius:16px;border:2px solid var(--pink);background:var(--pink);color:var(--bg);width:100%}
+.done-btn.is-done{background:transparent;border-color:var(--lime);color:var(--lime)}
+.rest{font-size:18px}
+/* checks */
+.check{display:flex;gap:12px;align-items:flex-start;cursor:pointer}
+.check input{appearance:none;flex:none;width:22px;height:22px;margin:1px 0 0;border-radius:7px;border:2px solid var(--pink);display:grid;place-content:center;cursor:pointer}
+.check input:checked{background:var(--pink)}
+.check input:checked::after{content:"✓";color:var(--bg);font-weight:700;font-size:14px}
+.check small{display:block;color:var(--muted);font-size:14px}
+.check input:checked + span{color:var(--muted)}
+/* 30 day */
+.grid30{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
+.day{text-align:left;padding:8px;border-radius:12px;border:1px solid var(--line);background:#170630;color:var(--ink);font-size:12px;line-height:1.35}
+.day b{display:block;font-size:14px;color:var(--pink)}
+.day.rest b{color:var(--cyan)}
+.day.today{border:2px solid var(--cyan)}
+.day.done{background:var(--lime);border-color:var(--lime);color:var(--bg)}
+.day.done b{color:var(--bg)}
+/* calendar */
+.calnav{display:flex;align-items:center;justify-content:space-between}
+.calnav button{width:36px;height:36px;border-radius:50%;border:2px solid var(--line);background:none;color:var(--ink);font-size:18px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.cal .dow{font-size:12px;color:var(--muted);font-weight:600;padding-bottom:2px}
+.cell{border-radius:10px;padding:5px 2px;min-height:48px;display:grid;align-content:start;gap:1px;background:#170630;font-variant-numeric:tabular-nums}
+.cell .n{font-size:12px;color:var(--muted)}
+.cell .x{font-size:13px;font-weight:700}
+.cell.l1{background:rgba(196,255,74,.18)}.cell.l2{background:rgba(196,255,74,.38)}.cell.l3{background:var(--lime)}
+.cell.l3 .n,.cell.l3 .x{color:var(--bg)}
+.cell.gym{box-shadow:inset 0 0 0 2px var(--pink)}
+.cell.today{box-shadow:inset 0 0 0 2px var(--cyan)}
+.cell.blank{background:none}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:4px;vertical-align:-1px;margin-right:4px}
+/* measure */
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{padding:6px 4px;text-align:left;font-size:15px}
+th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+td input{width:76px;font:inherit;font-size:15px;background:#0d0220;border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:5px 7px}
+textarea{width:100%;min-height:80px;font:inherit;font-size:13px;background:#0d0220;border:1px solid var(--line);border-radius:10px;color:var(--ink);padding:8px}
+/* save bar */
+.savebar{position:fixed;left:0;right:0;bottom:0;z-index:10;background:rgba(20,5,43,.96);border-top:1px solid var(--line);
+  padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
+.savebar .in{max-width:560px;margin:0 auto;display:flex;align-items:center;gap:10px}
+.status{margin-right:auto;font-size:14px;font-weight:600;color:var(--muted)}
+.status.ok{color:var(--lime)}
+.status.warn{color:var(--pink)}
+.save{font-family:var(--display);font-size:16px;padding:10px 26px;border-radius:999px;border:none;background:var(--lime);color:var(--bg)}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Gym Quest</h1>
+    <div class="lvl" id="lvlName">Level 1<br>Gym Newbie</div>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="t-today" aria-controls="v-today" aria-selected="true">Today</button>
+    <button class="tab" role="tab" id="t-quests" aria-controls="v-quests" aria-selected="false">Quests</button>
+    <button class="tab" role="tab" id="t-log" aria-controls="v-log" aria-selected="false">Log</button>
+  </div>
+
+  <!-- TODAY -->
+  <div class="view" id="v-today" role="tabpanel" aria-labelledby="t-today">
+    <section class="card" aria-label="XP">
+      <div class="row"><span class="xpnum" id="xpNum">0</span><span class="muted small" id="xpNext">100 XP to level 2</span></div>
+      <div class="bar" aria-hidden="true"><i id="xpBar"></i></div>
+      <div class="btns">
+        <button class="btn" data-xp="10" data-label="Yoga">+10 Yoga</button>
+        <button class="btn" data-xp="5" data-label="Pool">+5 Pool</button>
+        <button class="btn" data-xp="2" data-label="Protein">+2 Protein</button>
+        <button class="btn" data-xp="15" data-label="PR">+15 PR</button>
+        <button class="btn" data-xp="20" data-label="3-workout week">+20 3-workout week</button>
+      </div>
+      <div><button class="link" id="undo">Undo last XP</button></div>
+    </section>
+
+    <section class="card" id="todayCard" aria-live="polite"></section>
+  </div>
+
+  <!-- QUESTS -->
+  <div class="view" id="v-quests" role="tabpanel" aria-labelledby="t-quests" hidden>
+    <section class="card">
+      <div class="row"><h2>Daily quests</h2><span class="muted small" id="qCount"></span></div>
+      <p class="muted small">+2 XP each. Resets every day.</p>
+      <div id="questList" style="display:grid;gap:12px"></div>
+    </section>
+    <section class="card">
+      <div class="row"><h2>Booty &amp; Core 30</h2><span class="muted small" id="cCount"></span></div>
+      <p class="muted small">One 5-minute circuit a day, Nov 18 – Dec 17. Tap a day when it's done (+5 XP). Every 7th day is a stretch day.</p>
+      <div class="grid30" id="grid30"></div>
+    </section>
+  </div>
+
+  <!-- LOG -->
+  <div class="view" id="v-log" role="tabpanel" aria-labelledby="t-log" hidden>
+    <section class="card">
+      <div class="calnav">
+        <button id="calPrev" aria-label="Previous month">‹</button>
+        <h2 id="calTitle"></h2>
+        <button id="calNext" aria-label="Next month">›</button>
+      </div>
+      <p class="muted small" id="calTotal"></p>
+      <div class="cal" id="cal"></div>
+      <div class="legend"><span><i style="background:var(--lime)"></i>XP earned</span><span><i style="box-shadow:inset 0 0 0 2px var(--pink)"></i>Workout done</span><span><i style="box-shadow:inset 0 0 0 2px var(--cyan)"></i>Today</span></div>
+    </section>
+
+    <section class="card">
+      <h2>Measurements</h2>
+      <p class="muted small">Take these on the 1st of each month.</p>
+      <table><thead><tr><th></th><th>Start</th><th>Dec 14</th></tr></thead><tbody id="measBody"></tbody></table>
+    </section>
+
+    <section class="card">
+      <div class="row"><h2>Boss battle</h2><span class="muted small">Dec 14–15</span></div>
+      <div id="bossList" style="display:grid;gap:10px"></div>
+    </section>
+
+    <section class="card">
+      <h2>Back up</h2>
+      <p class="muted small">Copy your backup code and paste it in Notes once a week. To restore, paste a code below.</p>
+      <div class="btns"><button class="btn" id="copyBk">Copy backup code</button></div>
+      <textarea id="bkText" aria-label="Backup code" placeholder="Paste a backup code here"></textarea>
+      <div class="btns"><button class="btn" id="restoreBk">Restore from code</button></div>
+      <p class="small muted" id="bkMsg" aria-live="polite"></p>
+    </section>
+  </div>
+</div>
+
+<div class="savebar"><div class="in">
+  <span class="status" id="status" aria-live="polite">Not saved yet</span>
+  <button class="save" id="saveBtn">Save</button>
+</div></div>
+
+<script>
+/* ---------- data ---------- */
+const WORKOUTS={
+  A:{name:"Workout A",focus:"Glutes, squat, push",items:[
+    ["Glute main","3 × 10","Hip thrust machine","Smith hip thrust · DB glute bridge"],
+    ["Squat","3 × 12","Leg press, feet mid","Smith squat · goblet squat"],
+    ["Glute burn","3 × 15","Hip abduction machine","Cable kickback · glute kickback machine"],
+    ["Push","3 × 10–12","Chest press machine","Incline Smith push-ups · DB bench press"],
+    ["Pull down","3 × 10–12","Lat pulldown","Assisted pull-up · straight-arm pulldown"],
+    ["Core","3 × 30 s","Plank","Dead bug · cable crunch"]]},
+  B:{name:"Workout B",focus:"Hinge, legs, pull",items:[
+    ["Hinge","3 × 12","Back extension (45°)","DB Romanian deadlift · cable pull-through"],
+    ["Legs","3 × 12","Leg press, feet high","Step-ups · Bulgarian split squat"],
+    ["Glute burn","3 × 12 / side","Cable kickback","Hip abduction · glute kickback machine"],
+    ["Row","3 × 10–12","Seated cable row","Row machine · chest-supported DB row"],
+    ["Shoulders","3 × 10","Shoulder press machine","Seated DB press · lateral raise machine"],
+    ["Core","3 × 10 / side","Cable woodchop","Pallof press · captain's chair knee raise"]]}
+};
+const GYM_DAYS=[2,4,5]; // Tue, Thu, Fri
+const ANCHOR=new Date(2026,10,17); // Tue Nov 17 = session 0 = A
+const QUESTS=[
+  ["Single-leg glute bridges","2 × 10 per side"],
+  ["Reverse lunges","2 × 10 per side"],
+  ["Plank ladder","5 s longer than yesterday"],
+  ["Push-up level","10 at your level: wall, counter, knees, full"],
+  ["Wall sit","30 s, add 5 s each week"],
+  ["8k steps","Walk the dog if you need extra"],
+  ["Protein","120–140 g"],
+  ["Water","8+ cups"],
+  ["Sleep","7–8 hours"]
+];
+const BOSS=["Plank for 60 seconds","10 goblet squats with good form","10 knee push-ups","12 workouts done this month","Finish Booty & Core 30"];
+const MEAS=["Weight (lb)","Waist (in)","Hips (in)"];
+const LEVELS=["Gym Newbie","Squat Sweetheart","Bridge Baddie","Plank Princess","Iron Icon","Booty Boss","Core Queen","Final Boss Slayer"];
+const C30_START=new Date(2026,10,18);
+
+/* ---------- storage ---------- */
+const KEY="gymquest_v2";
+const blank=()=>({xpDays:{},hist:[],done:{},quests:{},c30:{},boss:{},meas:{},savedAt:null});
+let S=load();
+function load(){try{const r=localStorage.getItem(KEY);return r?Object.assign(blank(),JSON.parse(r)):blank()}catch(e){return blank()}}
+function save(manual){
+  try{
+    S.savedAt=Date.now();
+    localStorage.setItem(KEY,JSON.stringify(S));
+    const back=JSON.parse(localStorage.getItem(KEY));
+    if(!back||back.savedAt!==S.savedAt)throw new Error("readback");
+    setStatus("Saved ✓ "+new Date(S.savedAt).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"}),"ok");
+  }catch(e){setStatus(manual?"Couldn't save. Copy a backup code in Log.":"Not saved. Tap Save.","warn")}
+}
+function setStatus(t,c){const el=document.getElementById("status");el.textContent=t;el.className="status "+(c||"")}
+function changed(){save(false);render()}
+
+/* ---------- dates ---------- */
+const iso=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const TODAY=new Date();TODAY.setHours(0,0,0,0);
+const TK=iso(TODAY);
+function sessionIndex(d){ // number of gym days from ANCHOR up to and before d
+  let n=0;const t=new Date(ANCHOR);
+  if(d<ANCHOR)return 0;
+  while(t<d){if(GYM_DAYS.includes(t.getDay()))n++;t.setDate(t.getDate()+1)}
+  return n;
+}
+const workoutFor=d=>sessionIndex(d)%2===0?"A":"B";
+function nextGymDay(from){const t=new Date(from);t.setDate(t.getDate()+1);while(!GYM_DAYS.includes(t.getDay()))t.setDate(t.getDate()+1);return t}
+
+/* ---------- XP ---------- */
+const totalXP=()=>Object.values(S.xpDays).reduce((a,b)=>a+b,0);
+function addXP(n,label){S.xpDays[TK]=Math.max(0,(S.xpDays[TK]||0)+n);S.hist.push({d:TK,n,label});if(S.hist.length>100)S.hist.shift();}
+document.querySelectorAll("[data-xp]").forEach(b=>b.addEventListener("click",()=>{addXP(+b.dataset.xp,b.dataset.label);changed()}));
+document.getElementById("undo").addEventListener("click",()=>{const h=S.hist.pop();if(!h)return;S.xpDays[h.d]=Math.max(0,(S.xpDays[h.d]||0)-h.n);changed()});
+function renderXP(){
+  const xp=totalXP(),lvl=Math.floor(xp/100)+1,into=xp%100;
+  document.getElementById("xpNum").textContent=xp+" XP";
+  document.getElementById("xpNext").textContent=(100-into)+" XP to level "+(lvl+1);
+  document.getElementById("xpBar").style.width=into+"%";
+  document.getElementById("lvlName").innerHTML="Level "+lvl+"<br>"+LEVELS[Math.min(lvl-1,LEVELS.length-1)];
+}
+
+/* ---------- today ---------- */
+let showAnyway=null;
+function workoutHTML(key,dateLabel){
+  const w=WORKOUTS[key];
+  return `<div><div class="kicker">${dateLabel}</div><div class="wtitle">${w.name}</div><p class="muted">${w.focus} · 75 min</p></div>
+  <div class="phase"><span class="t">Warm-up<br>10 min</span><span>Elliptical, easy pace</span></div>
+  <div class="phase"><span class="t">Lift<br>~50 min</span><div>
+    <p class="muted small" style="margin-bottom:10px">Rest 60–90 s between sets. Add weight when every set hits the top rep number.</p>
+    <ul class="list">${w.items.map(i=>`<li><span class="row"><h3>${i[0]}: ${i[2]}</h3><span class="sr">${i[1]}</span></span><span class="opt">or ${i[3]}</span></li>`).join("")}</ul></div></div>
+  <div class="phase"><span class="t">Cardio<br>15 min</span><span>StairMaster, rower or fan bike</span></div>
+  <div class="phase"><span class="t">Finish<br>5 min</span><span>Stretch, then sauna (10–15 min)</span></div>`;
+}
+function renderToday(){
+  const card=document.getElementById("todayCard");
+  const dow=TODAY.toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"});
+  const isGym=GYM_DAYS.includes(TODAY.getDay());
+  const doneKey=S.done[TK];
+  const key=doneKey||(isGym?workoutFor(TODAY):showAnyway);
+  if(key){
+    const isDone=!!doneKey;
+    card.innerHTML=workoutHTML(key,dow+(isGym?"":" · bonus day"))+
+      `<button class="done-btn ${isDone?"is-done":""}" id="doneBtn">${isDone?"Done ✓ +15 XP":"Mark workout done"}</button>`+
+      (isDone?"":`<div><button class="link" id="swapBtn">Do ${key==="A"?"Workout B":"Workout A"} instead</button></div>`);
+    document.getElementById("doneBtn").addEventListener("click",()=>{
+      if(S.done[TK]){delete S.done[TK];addXP(-15,"Workout undone")}else{S.done[TK]=key;addXP(15,"Workout")}
+      changed();
+    });
+    const sw=document.getElementById("swapBtn");
+    if(sw)sw.addEventListener("click",()=>{showAnyway=key==="A"?"B":"A";renderTodayOverride(showAnyway)});
+  }else{
+    const nx=nextGymDay(TODAY);
+    card.innerHTML=`<div><div class="kicker">${dow}</div><div class="wtitle">Rest day</div></div>
+      <p class="rest">Recover today. Yoga (+10 XP), your Booty &amp; Core circuit, or a walk all count.</p>
+      <p class="muted">Next: ${nx.toLocaleDateString("en-US",{weekday:"long"})} · ${WORKOUTS[workoutFor(nx)].name}</p>
+      <div><button class="link" id="anyway">Do a workout today anyway</button></div>`;
+    document.getElementById("anyway").addEventListener("click",()=>{showAnyway=workoutFor(nx);renderToday()});
+  }
+}
+function renderTodayOverride(key){
+  // swap shown workout on a gym day without changing the rotation
+  const card=document.getElementById("todayCard");
+  const dow=TODAY.toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"});
+  card.innerHTML=workoutHTML(key,dow)+`<button class="done-btn" id="doneBtn">Mark workout done</button>
+    <div><button class="link" id="backBtn">Back to ${WORKOUTS[workoutFor(TODAY)].name}</button></div>`;
+  document.getElementById("doneBtn").addEventListener("click",()=>{S.done[TK]=key;addXP(15,"Workout");changed()});
+  document.getElementById("backBtn").addEventListener("click",()=>{showAnyway=null;renderToday()});
+}
+
+/* ---------- quests ---------- */
+function renderQuests(){
+  const q=S.quests[TK]||{};let n=0;
+  document.getElementById("questList").innerHTML=QUESTS.map((x,i)=>{if(q[i])n++;
+    return `<label class="check"><input type="checkbox" data-q="${i}" ${q[i]?"checked":""}><span>${x[0]}<small>${x[1]}</small></span></label>`}).join("");
+  document.getElementById("qCount").textContent=n+" / "+QUESTS.length+" today";
+  document.querySelectorAll("[data-q]").forEach(inp=>inp.addEventListener("change",()=>{
+    S.quests[TK]=S.quests[TK]||{};S.quests[TK][inp.dataset.q]=inp.checked;addXP(inp.checked?2:-2,"Quest");changed();
+  }));
+}
+function plan30(d){
+  if(d%7===0)return {rest:true,txt:"Stretch 10 min + 20 frog pumps"};
+  const s=d-1-Math.floor(d/7);
+  return {rest:false,txt:`${15+Math.round(s*0.8)} squats<br>${20+s} bridges<br>${60+Math.round(s*1.25)} s plank`};
+}
+function render30(){
+  let html="",n=0;
+  for(let d=1;d<=30;d++){
+    const dt=new Date(C30_START);dt.setDate(dt.getDate()+d-1);
+    const p=plan30(d),done=!!S.c30[d];if(done)n++;
+    html+=`<button class="day${p.rest?" rest":""}${done?" done":""}${iso(dt)===TK?" today":""}" data-d="${d}" aria-pressed="${done}"><b>Day ${d}</b>${dt.toLocaleDateString("en-US",{month:"short",day:"numeric"})}<br>${p.txt}</button>`;
+  }
+  const g=document.getElementById("grid30");g.innerHTML=html;
+  document.getElementById("cCount").textContent=n+" / 30";
+  g.querySelectorAll(".day").forEach(b=>b.addEventListener("click",()=>{const d=b.dataset.d;S.c30[d]=!S.c30[d];addXP(S.c30[d]?5:-5,"Booty & Core");changed()}));
+}
+
+/* ---------- log ---------- */
+let calMonth=new Date(TODAY.getFullYear(),TODAY.getMonth(),1);
+function renderCal(){
+  const y=calMonth.getFullYear(),m=calMonth.getMonth();
+  document.getElementById("calTitle").textContent=calMonth.toLocaleDateString("en-US",{month:"long",year:"numeric"});
+  const days=new Date(y,m+1,0).getDate(),lead=new Date(y,m,1).getDay();
+  let html=["S","M","T","W","T","F","S"].map(d=>`<span class="dow">${d}</span>`).join(""),tot=0,wk=0;
+  for(let i=0;i<lead;i++)html+=`<span class="cell blank"></span>`;
+  for(let d=1;d<=days;d++){
+    const k=iso(new Date(y,m,d)),x=S.xpDays[k]||0;tot+=x;if(S.done[k])wk++;
+    const lv=x===0?"":x<10?" l1":x<25?" l2":" l3";
+    html+=`<span class="cell${lv}${S.done[k]?" gym":""}${k===TK?" today":""}"><span class="n">${d}</span><span class="x">${x?"+"+x:""}</span></span>`;
+  }
+  document.getElementById("cal").innerHTML=html;
+  document.getElementById("calTotal").textContent=`${tot} XP · ${wk} workout${wk===1?"":"s"} this month`;
+}
+document.getElementById("calPrev").addEventListener("click",()=>{calMonth.setMonth(calMonth.getMonth()-1);renderCal()});
+document.getElementById("calNext").addEventListener("click",()=>{calMonth.setMonth(calMonth.getMonth()+1);renderCal()});
+function renderMeas(){
+  document.getElementById("measBody").innerHTML=MEAS.map((m,i)=>`<tr><td>${m}</td>${[0,1].map(c=>`<td><input inputmode="decimal" data-m="${i}_${c}" aria-label="${m} ${c?"Dec 14":"start"}" value="${S.meas[i+"_"+c]||""}"></td>`).join("")}</tr>`).join("");
+  document.querySelectorAll("[data-m]").forEach(inp=>inp.addEventListener("change",()=>{S.meas[inp.dataset.m]=inp.value;save(false)}));
+}
+function renderBoss(){
+  document.getElementById("bossList").innerHTML=BOSS.map((b,i)=>`<label class="check"><input type="checkbox" data-b="${i}" ${S.boss[i]?"checked":""}><span>${b}</span></label>`).join("");
+  document.querySelectorAll("[data-b]").forEach(inp=>inp.addEventListener("change",()=>{S.boss[inp.dataset.b]=inp.checked;addXP(inp.checked?10:-10,"Boss");changed()}));
+}
+document.getElementById("copyBk").addEventListener("click",async()=>{
+  const code=btoa(unescape(encodeURIComponent(JSON.stringify(S))));
+  const ta=document.getElementById("bkText");ta.value=code;
+  try{await navigator.clipboard.writeText(code);document.getElementById("bkMsg").textContent="Copied. Paste it in Notes."}
+  catch(e){ta.select();document.getElementById("bkMsg").textContent="Code is in the box. Press and hold to copy it."}
+});
+document.getElementById("restoreBk").addEventListener("click",()=>{
+  const msg=document.getElementById("bkMsg");
+  try{const d=JSON.parse(decodeURIComponent(escape(atob(document.getElementById("bkText").value.trim()))));
+    if(!d||typeof d.xpDays!=="object")throw 0;S=Object.assign(blank(),d);save(true);render();msg.textContent="Restored ✓"}
+  catch(e){msg.textContent="That code didn't work. Copy the whole code and try again."}
+});
+
+/* ---------- tabs + save ---------- */
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected",x===t));
+  document.querySelectorAll(".view").forEach(v=>v.hidden=v.id!==t.getAttribute("aria-controls"));
+  window.scrollTo(0,0);
+}));
+document.getElementById("saveBtn").addEventListener("click",()=>save(true));
+
+function render(){renderXP();renderToday();renderQuests();render30();renderCal();renderBoss()}
+render();renderMeas();
+if(S.savedAt)setStatus("Saved ✓ "+new Date(S.savedAt).toLocaleDateString("en-US",{month:"short",day:"numeric"})+", "+new Date(S.savedAt).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"}),"ok");
+</script>
+</body>
+</html>
